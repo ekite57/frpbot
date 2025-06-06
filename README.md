@@ -1,5 +1,5 @@
 # FRPBot
-a bot I wrote so everyone can pin messages in a QQ group.
+a bot I wrote so everyone can pin messages in a QQ group.  
 shitcode warning: if your IQ is larger than 0.1, then please don't view any code within this repo
 
 ## Usage
