@@ -8,6 +8,8 @@ to pin a message, reply to it and type `!pin` or `！pin`
 ## Deploy
 WARNING: NOT RESPONSIBLE FOR ANY BANNED ACCOUNT  
 
+for more information about configuring napcat, go [here](https://napneko.github.io/) for a detailed documentation  
+
 0. clone repo
 1. `pip install -r requirements.txt`
 2. create a websocket and a http server within napcat or whatever framework that you use
