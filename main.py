@@ -101,11 +101,9 @@ async def main():
 
             if isConnect(deserialisedMsg) == True:
                 print("connected to server")
-                return
 
             if isHeartbeat(deserialisedMsg) == True:
                 print("<3beat received")
-                return
 
             gid = getGid(deserialisedMsg)
 
