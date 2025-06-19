@@ -15,6 +15,7 @@ TARGET = 0
 # command to pin a message
 PIN_COMMANDS = ["!pin", "！pin"]
 UPTIME_COMMANDS = ["!uptime", "！uptime"]
+HELP_COMMANDS = ["!help", "！help"]
 
 timeStart = 0
 
@@ -48,6 +49,10 @@ async def main():
                         )
                         id = lib.getMessageId(deserialisedMsg)
                         lib.sendReply(f"Running for {uptime}", id, gid, HTTP_URI)
+                    
+                    elif (str(lib.getTextInMsg(deserialisedMsg)) in HELP_COMMANDS):
+                        id = lib.getMessageId(deserialisedMsg)
+                        lib.sendReply(f"FRPBot\n!uptime - 查看在线时间\n!pin - 设置精华消息", id, gid, HTTP_URI)
 
             else:
                 print("not from target, skipping")
