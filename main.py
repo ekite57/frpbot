@@ -10,7 +10,7 @@ WEBSOCKET_URI = "ws://127.0.0.1:5001/"
 HTTP_URI = "http://127.0.0.1:5002/"
 
 # target chat for the bot to work on
-TARGET = 0
+TARGETS = ["0"]
 
 # command to pin a message
 PIN_COMMANDS = ["!pin", "！pin"]
@@ -35,7 +35,7 @@ async def main():
 
             gid = lib.getGid(deserialisedMsg)
 
-            if gid == TARGET:
+            if gid in TARGETS:
                 print("message received from target:" + str(gid))
                 if lib.isMessage(deserialisedMsg):
                     if (lib.isReply(deserialisedMsg) and str(lib.getTextInMsg(deserialisedMsg)) in PIN_COMMANDS):
