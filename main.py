@@ -1,6 +1,7 @@
 import asyncio
 import websockets
 import json
+import time
 import frplib as lib
 
 # websocket / http server configuration
@@ -12,6 +13,9 @@ TARGET = 0
 
 # command to pin a message
 PIN_COMMANDS = ["!pin", "！pin"]
+UPTIME_COMMANDS = ["!uptime", "！uptime"]
+
+timeStart = 0
 
 async def main():
     async with websockets.connect(WEBSOCKET_URI) as ws:
@@ -32,14 +36,23 @@ async def main():
             if gid == TARGET:
                 print("message received from target:" + str(gid))
                 if lib.isMessage(deserialisedMsg):
-                    if (
-                        lib.isReply(deserialisedMsg)
-                        and str(lib.getTextInMsg(deserialisedMsg)) in PIN_COMMANDS
-                    ):
+                    if (lib.isReply(deserialisedMsg) and str(lib.getTextInMsg(deserialisedMsg)) in PIN_COMMANDS):
                         replyID = lib.getReplyID(deserialisedMsg)
                         lib.setEssenceMsg(replyID, HTTP_URI)
+                    elif (lib.isReply(deserialisedMsg) and str(lib.getTextInMsg(deserialisedMsg)) in UPTIME_COMMANDS):
+                        uptime = time.time - timeStart
+                        uptimeFormatted = time.strftime(
+                            "%d d %H h %M m %S s (%z)",
+                            uptime
+                        )
+
+                        id = lib.getMessageId(deserialisedMsg)
+
+                        lib.sendReply(f"Running for {uptimeFormatted}", id, gid, HTTP_URI)
+
             else:
                 print("not from target, skipping")
 
 if __name__ == "main":
+    timeStart = time.time()
     asyncio.run(main())

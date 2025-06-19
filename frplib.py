@@ -72,6 +72,10 @@ def getReplyID(msg):
             if msgType == "reply":
                 return a.get("data").get("id")
             
+def getMessageId(msg):
+    if isMessage(msg):
+        return msg.get("message_id")
+            
 def setEssenceMsg(msgId:int, endpointAddr:str):
     """
     Set essence message.
@@ -87,10 +91,47 @@ def setEssenceMsg(msgId:int, endpointAddr:str):
         "Content-Type": "application/json"
     }
     r = requests.post(
-        url=addr,
-        data=payload,
-        headers=headers
+        url = addr,
+        data = payload,
+        headers = headers
     )
+    return r
+
+def sendReply(msgContent:str, msgReplyTo:int, groupId:int, endpointAddr:str):
+    addr = endpointAddr + "send_group_msg"
+    payload = json.dumps(
+        {
+            "group_id": groupId,
+            "message":
+            [
+                {
+                    "type": "reply",
+                    "data":
+                    {
+                        "id": msgReplyTo
+                    }
+                },
+                {
+                    "type": "text",
+                    "data":
+                    {
+                        "text": msgContent
+                    }
+                }
+            ]
+        }
+    )
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    r = requests.post(
+        url = addr,
+        data = payload,
+        headers = headers
+    )
+
     return r
 
 if __name__ == "__main__":
