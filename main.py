@@ -53,6 +53,6 @@ async def main():
             else:
                 print("not from target, skipping")
 
-if __name__ == "main":
+if __name__ == "__main__":
     timeStart = time.time()
     asyncio.run(main())
