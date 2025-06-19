@@ -2,6 +2,7 @@ import asyncio
 import websockets
 import json
 import time
+import datetime
 import frplib as lib
 
 # websocket / http server configuration
@@ -39,16 +40,14 @@ async def main():
                     if (lib.isReply(deserialisedMsg) and str(lib.getTextInMsg(deserialisedMsg)) in PIN_COMMANDS):
                         replyID = lib.getReplyID(deserialisedMsg)
                         lib.setEssenceMsg(replyID, HTTP_URI)
-                    elif (lib.isReply(deserialisedMsg) and str(lib.getTextInMsg(deserialisedMsg)) in UPTIME_COMMANDS):
-                        uptime = time.time - timeStart
-                        uptimeFormatted = time.strftime(
-                            "%d d %H h %M m %S s (%z)",
-                            uptime
+
+                    elif (str(lib.getTextInMsg(deserialisedMsg)) in UPTIME_COMMANDS):
+                        timeCurrent = time.time()
+                        uptime = datetime.timedelta(
+                            seconds = round(timeCurrent - timeStart, None)
                         )
-
                         id = lib.getMessageId(deserialisedMsg)
-
-                        lib.sendReply(f"Running for {uptimeFormatted}", id, gid, HTTP_URI)
+                        lib.sendReply(f"Running for {uptime}", id, gid, HTTP_URI)
 
             else:
                 print("not from target, skipping")
