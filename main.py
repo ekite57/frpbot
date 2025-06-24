@@ -10,7 +10,7 @@ WEBSOCKET_URI = "ws://127.0.0.1:5001/"
 HTTP_URI = "http://127.0.0.1:5002/"
 
 # target chat for the bot to work on
-TARGETS = ["0"]
+TARGETS = [0]
 
 # command to pin a message
 PIN_COMMANDS = ["!pin", "！pin"]
