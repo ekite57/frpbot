@@ -1,5 +1,6 @@
 import json
 import requests
+import re
 
 def getGid(msg):
     if "group_id" in msg:
@@ -97,28 +98,12 @@ def setEssenceMsg(msgId:int, endpointAddr:str):
     )
     return r
 
-def sendReply(msgContent:str, msgReplyTo:int, groupId:int, endpointAddr:str):
+def sendMessage(msgContent:object, groupId:int, endpointAddr:str):
     addr = endpointAddr + "send_group_msg"
     payload = json.dumps(
         {
             "group_id": groupId,
-            "message":
-            [
-                {
-                    "type": "reply",
-                    "data":
-                    {
-                        "id": msgReplyTo
-                    }
-                },
-                {
-                    "type": "text",
-                    "data":
-                    {
-                        "text": msgContent
-                    }
-                }
-            ]
+            "message": json.dumps(msgContent)
         }
     )
 

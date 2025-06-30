@@ -3,6 +3,8 @@ import websockets
 import json
 import time
 import datetime
+import re
+
 import frplib as lib
 
 # websocket / http server configuration
@@ -12,12 +14,10 @@ HTTP_URI = "http://127.0.0.1:5002/"
 # target chat for the bot to work on
 TARGETS = ["0"]
 
-# command to pin a message
-PIN_COMMANDS = ["!pin", "！pin"]
-UPTIME_COMMANDS = ["!uptime", "！uptime"]
-HELP_COMMANDS = ["!help", "！help"]
-
-timeStart = 0
+# command syntaxes
+PIN_SYNTAX = re.compile("(!|！)pin$")
+UPTIME_SYNTAX = re.compile("^(!|！)uptime$")
+HELP_SYNTAX = re.compile("^(!|！)help$")
 
 async def main():
     async with websockets.connect(WEBSOCKET_URI) as ws:
@@ -38,24 +38,59 @@ async def main():
             if gid in TARGETS:
                 print("message received from target:" + str(gid))
                 if lib.isMessage(deserialisedMsg):
-                    if (lib.isReply(deserialisedMsg) and str(lib.getTextInMsg(deserialisedMsg)) in PIN_COMMANDS):
+                    if (lib.isReply(deserialisedMsg) and PIN_SYNTAX.search(str(lib.getTextInMsg(deserialisedMsg)))):
                         replyID = lib.getReplyID(deserialisedMsg)
                         lib.setEssenceMsg(replyID, HTTP_URI)
 
-                    elif (str(lib.getTextInMsg(deserialisedMsg)) in UPTIME_COMMANDS):
+                    elif (UPTIME_SYNTAX.search(str(lib.getTextInMsg(deserialisedMsg)))):
                         timeCurrent = time.time()
                         uptime = datetime.timedelta(
                             seconds = round(timeCurrent - timeStart, None)
                         )
-                        id = lib.getMessageId(deserialisedMsg)
-                        lib.sendReply(f"Running for {uptime}", id, gid, HTTP_URI)
+                        msgId = lib.getMessageId(deserialisedMsg)
+                        lib.sendMessage(
+                            msgContent = [
+                                {
+                                    "type": "reply",
+                                    "data":
+                                    {
+                                        "id": msgId
+                                    }
+                                },
+                                {
+                                    "type": "text",
+                                    "data":
+                                    {
+                                        "text": f"Running for {uptime}"
+                                    }
+                                }
+                            ],
+                            groupId = gid,
+                            endpointAddr = HTTP_URI
+                        )
                     
-                    elif (str(lib.getTextInMsg(deserialisedMsg)) in HELP_COMMANDS):
-                        id = lib.getMessageId(deserialisedMsg)
-                        lib.sendReply(f"FRPBot\n!uptime - 查看在线时间\n!pin - 设置精华消息", id, gid, HTTP_URI)
-
-            else:
-                print("not from target, skipping")
+                    elif (HELP_SYNTAX.search(str(lib.getTextInMsg(deserialisedMsg)))):
+                        msgId = lib.getMessageId(deserialisedMsg)
+                        lib.sendMessage(
+                            msgContent = [
+                                {
+                                    "type": "reply",
+                                    "data":
+                                    {
+                                        "id": msgId
+                                    }
+                                },
+                                {
+                                    "type": "text",
+                                    "data":
+                                    {
+                                        "text": f"FRPBot\n!uptime - 查看在线时间\n!pin - 设置精华消息"
+                                    }
+                                }
+                            ],
+                            groupId = gid,
+                            endpointAddr = HTTP_URI
+                        )
 
 if __name__ == "__main__":
     timeStart = time.time()
