@@ -120,4 +120,4 @@ def sendMessage(msgContent:object, groupId:int, endpointAddr:str):
     return r
 
 if __name__ == "__main__":
-    print("This wouldn't do anything.")
+    print("you are not supposed to run this - run main.py instead")

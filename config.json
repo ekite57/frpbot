@@ -1,0 +1,11 @@
+{
+    "websocket_uri": "ws://127.0.0.1:5001/",
+    "http_uri": "http://127.0.0.1:5002/",
+    "targets":
+    [
+        0
+    ],
+    "pin_syntax": "(!|！)pin$",
+    "uptime_syntax": "^(!|！)uptime$",
+    "help_syntax": "^(!|！)help$"
+}

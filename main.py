@@ -6,21 +6,21 @@ import datetime
 import re
 
 import frplib as lib
+import configlib as conf
 
-# websocket / http server configuration
-WEBSOCKET_URI = "ws://127.0.0.1:5001/"
-HTTP_URI = "http://127.0.0.1:5002/"
+c = conf.readConfig()
 
-# target chat for the bot to work on
-TARGETS = [0]
+wsUri = conf.getConfig(c, "websocket_uri")
+httpUri = conf.getConfig(c, "http_uri")
 
-# command syntaxes
-PIN_SYNTAX = re.compile("(!|！)pin$")
-UPTIME_SYNTAX = re.compile("^(!|！)uptime$")
-HELP_SYNTAX = re.compile("^(!|！)help$")
+targets = conf.getConfig(c, "targets")
+
+pinSyntax = re.compile(conf.getConfig(c, "pin_syntax"))
+uptimeSyntax = re.compile(conf.getConfig(c, "uptime_syntax"))
+helpSyntax = re.compile(conf.getConfig(c, "help_syntax"))
 
 async def main():
-    async with websockets.connect(WEBSOCKET_URI) as ws:
+    async with websockets.connect(wsUri) as ws:
         while True:
             msg = await ws.recv()
             deserialisedMsg = json.loads(msg)
@@ -35,14 +35,14 @@ async def main():
 
             gid = lib.getGid(deserialisedMsg)
 
-            if gid in TARGETS:
+            if gid in targets:
                 print("message received from target:" + str(gid))
                 if lib.isMessage(deserialisedMsg):
-                    if (lib.isReply(deserialisedMsg) and PIN_SYNTAX.search(str(lib.getTextInMsg(deserialisedMsg)))):
+                    if (lib.isReply(deserialisedMsg) and pinSyntax.search(str(lib.getTextInMsg(deserialisedMsg)))):
                         replyID = lib.getReplyID(deserialisedMsg)
-                        lib.setEssenceMsg(replyID, HTTP_URI)
+                        lib.setEssenceMsg(replyID, httpUri)
 
-                    elif (UPTIME_SYNTAX.search(str(lib.getTextInMsg(deserialisedMsg)))):
+                    elif (uptimeSyntax.search(str(lib.getTextInMsg(deserialisedMsg)))):
                         timeCurrent = time.time()
                         uptime = datetime.timedelta(
                             seconds = round(timeCurrent - timeStart, None)
@@ -66,10 +66,10 @@ async def main():
                                 }
                             ],
                             groupId = gid,
-                            endpointAddr = HTTP_URI
+                            endpointAddr = httpUri
                         )
                     
-                    elif (HELP_SYNTAX.search(str(lib.getTextInMsg(deserialisedMsg)))):
+                    elif (helpSyntax.search(str(lib.getTextInMsg(deserialisedMsg)))):
                         msgId = lib.getMessageId(deserialisedMsg)
                         lib.sendMessage(
                             msgContent = [
@@ -89,7 +89,7 @@ async def main():
                                 }
                             ],
                             groupId = gid,
-                            endpointAddr = HTTP_URI
+                            endpointAddr = httpUri
                         )
 
 if __name__ == "__main__":
