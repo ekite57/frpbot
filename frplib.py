@@ -103,7 +103,7 @@ def sendMessage(msgContent:object, groupId:int, endpointAddr:str):
     payload = json.dumps(
         {
             "group_id": groupId,
-            "message": json.dumps(msgContent)
+            "message": msgContent
         }
     )
 
