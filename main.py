@@ -1,96 +1,60 @@
 import asyncio
 import websockets
 import json
+import re
 import time
 import datetime
-import re
 
-import frplib as lib
-import configlib as conf
-
-c = conf.readConfig()
-
-wsUri = conf.getConfig(c, "websocket_uri")
-httpUri = conf.getConfig(c, "http_uri")
-
-targets = conf.getConfig(c, "targets")
-
-pinSyntax = re.compile(conf.getConfig(c, "pin_syntax"))
-uptimeSyntax = re.compile(conf.getConfig(c, "uptime_syntax"))
-helpSyntax = re.compile(conf.getConfig(c, "help_syntax"))
+import config as conf
+import frplib as frplib
 
 async def main():
-    async with websockets.connect(wsUri) as ws:
+    async with websockets.connect(conf.websocketUri) as ws:
         while True:
-            msg = await ws.recv()
-            deserialisedMsg = json.loads(msg)
+            msgJson = await ws.recv()
+            msg = json.loads(msgJson)
 
-            # print(deserialisedMsg)
+            if frplib.isConnect(msg):
+                print("✅ WebSocket connected")
 
-            if lib.isConnect(deserialisedMsg) == True:
-                print("connected to server")
+            gid = frplib.getGid(msg)
+            msgId = frplib.getMessageId(msg)
 
-            if lib.isHeartbeat(deserialisedMsg) == True:
-                print("<3beat received")
+            if gid in conf.targets:
+                print(f"♿ received message from {gid}")
+            
+                if frplib.isMessage(msg):
+                    text = frplib.getTextInMsg(msg)
 
-            gid = lib.getGid(deserialisedMsg)
+                    try:
+                        if (
+                            re.search("(!|！)([Pp]|[Pp][Ii][Nn])$", text)
+                            and frplib.isReply(msg)
+                        ):
+                            replyId = frplib.getReplyId(msg)
+                            await frplib.setEssenceMsg(ws, replyId)
 
-            if gid in targets:
-                print("message received from target:" + str(gid))
-                if lib.isMessage(deserialisedMsg):
-                    if (lib.isReply(deserialisedMsg) and pinSyntax.search(str(lib.getTextInMsg(deserialisedMsg)))):
-                        replyID = lib.getReplyID(deserialisedMsg)
-                        lib.setEssenceMsg(replyID, httpUri)
+                        elif (
+                            re.search("^(!|！)([Uu][Pp]|[Uu][Pp][Tt][Ii][Mm][Ee])$", text)
+                        ):
+                            timeCurrent = time.time()
+                            uptime = datetime.timedelta(
+                                seconds = round(timeCurrent - timeStart, None)
+                            )
+                            await frplib.qSendGroupReply(ws, f"Running for {uptime}", msgId, gid)
 
-                    elif (uptimeSyntax.search(str(lib.getTextInMsg(deserialisedMsg)))):
-                        timeCurrent = time.time()
-                        uptime = datetime.timedelta(
-                            seconds = round(timeCurrent - timeStart, None)
-                        )
-                        msgId = lib.getMessageId(deserialisedMsg)
-                        lib.sendMessage(
-                            msgContent = [
-                                {
-                                    "type": "reply",
-                                    "data":
-                                    {
-                                        "id": msgId
-                                    }
-                                },
-                                {
-                                    "type": "text",
-                                    "data":
-                                    {
-                                        "text": f"Running for {uptime}"
-                                    }
-                                }
-                            ],
-                            groupId = gid,
-                            endpointAddr = httpUri
-                        )
+                        elif (
+                            re.search("^(!|！)[Hh][Ee][Ll][Pp]$", text)
+                        ):
+                            await frplib.qSendGroupReply(
+                                connection = ws,
+                                msgContent = f"FRPBot\n\n!uptime\n查看在线时间\n!pin\n设置精华消息",
+                                replyId = msgId,
+                                groupId = gid
+                            )
                     
-                    elif (helpSyntax.search(str(lib.getTextInMsg(deserialisedMsg)))):
-                        msgId = lib.getMessageId(deserialisedMsg)
-                        lib.sendMessage(
-                            msgContent = [
-                                {
-                                    "type": "reply",
-                                    "data":
-                                    {
-                                        "id": msgId
-                                    }
-                                },
-                                {
-                                    "type": "text",
-                                    "data":
-                                    {
-                                        "text": f"FRPBot\n!uptime - 查看在线时间\n!pin - 设置精华消息"
-                                    }
-                                }
-                            ],
-                            groupId = gid,
-                            endpointAddr = httpUri
-                        )
+                    except Exception as e:
+                        print(f"🆖 Error: {e}")
 
 if __name__ == "__main__":
     timeStart = time.time()
