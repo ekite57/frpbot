@@ -3,8 +3,8 @@ a bot I wrote so everyone can pin messages in a QQ group.
 (shitcode warning)
 
 ## Usage
-`!help` to show usage
-`!uptime` to show uptime
+`!help` to show usage  
+`!uptime` to show uptime  
 `!pin` to pin message
 
 ## Deploy
